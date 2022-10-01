@@ -41,7 +41,7 @@ class ConfigProvider
                 ResourceManagerInterface::class => DefaultResourceManager::class,
                 //                GlobalTransactionScanner::class => GlobalTransactionScannerFactory::class,
                 LoggerInterface::class => StdoutLogger::class,
-//                DataSourceProxy::class => DataSourceProxyFactory::class,
+                DataSourceProxy::class => DataSourceProxyFactory::class,
             ],
         ];
     }

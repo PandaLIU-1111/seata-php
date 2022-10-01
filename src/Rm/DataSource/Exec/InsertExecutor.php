@@ -17,22 +17,11 @@ declare(strict_types=1);
  * limitations under the License.
  *
  */
-namespace Hyperf\Seata\Rm\DataSource\Sql\Struct;
+namespace Hyperf\Seata\Rm\DataSource\Exec;
 
-use Hyperf\Seata\Rm\DataSource\ConnectionProxyInterface;
-use Hyperf\Seata\Rm\PDOProxy;
-
-interface TableMetaCache
+interface InsertExecutor extends Executor
 {
-    /**
-     * Gets table meta.
-     *
-     * @return TableMeta the table meta
-     */
-    public function getTableMeta(\PDO $PDO, string $tableName, string $resourceId): TableMeta;
+    public function getPkValues(): array;
 
-    /**
-     * Clear the table meta cache.
-     */
-    public function refresh(\PDO $PDO, string $resourceId);
+    public function getPkValuesByColumn(): array;
 }

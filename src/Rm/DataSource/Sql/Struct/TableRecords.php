@@ -21,22 +21,16 @@ namespace Hyperf\Seata\Rm\DataSource\Sql\Struct;
 
 class TableRecords
 {
-    /**
-     * @var null|TableMeta
-     */
-    private $tableMeta;
+    private null|TableMeta $tableMeta;
 
-    /**
-     * @var string
-     */
-    private $tableName = '';
+    private string $tableName = '';
 
     /**
      * @var Row[]
      */
-    private $rows = [];
+    private array $rows = [];
 
-    public function size()
+    public function size(): int
     {
         return count($this->rows);
     }
@@ -132,4 +126,10 @@ class TableRecords
         }
         return $pkRows;
     }
+
+    public static function empty(?TableMeta $tableMeta): TableRecords
+    {
+        return new EmptyTableRecords($tableMeta);
+    }
+
 }

@@ -31,6 +31,7 @@ use Hyperf\Seata\Logger\LoggerFactory;
 use Hyperf\Seata\Logger\LoggerInterface;
 use Hyperf\Seata\Rm\DataSource\ConnectionContext;
 use Hyperf\Seata\Rm\DataSource\ConnectionProxyInterface;
+use Hyperf\Seata\Rm\DataSource\Sql\Struct\TableMetaCacheFactory;
 use Hyperf\Seata\Rm\DataSource\Undo\SQLUndoLog;
 use Hyperf\Seata\Rm\DataSource\Undo\UndoLogManager;
 use Hyperf\Seata\Rm\DataSource\Undo\UndoLogManagerFactory;
@@ -205,13 +206,42 @@ class PDOProxy extends \PDO implements Resource, ConnectionProxyInterface
     {
         $sqlParser = SqlParserFactory::parser($query);
         $sqlParser->setResourceId($this->getResourceId());
+        if (! empty($sqlParser->getTableName())) {
+            $tableMetaCache = TableMetaCacheFactory::getTableMetaCache($sqlParser->getDbType());
+            $tableMetaCache->getTableMeta($this, $sqlParser->getTableName(), $this->getResourceId());
+        }
+
         $prepare = parent::prepare($query, $options);
         return new PDOStatementProxy($prepare, $this, $sqlParser);
     }
 
-    public function parentPrepare($query, $options): bool|\PDOStatement
+    public function parentPrepare($query, array $options = []): bool|\PDOStatement
     {
-        return parent::prepare($query, $options);
+        $args = func_get_args();
+        return parent::prepare(...$args);
+    }
+
+    public function getAutoCommit()
+    {
+        $PDOStatement = $this->query('SELECT @@autocommit');
+        $result = $PDOStatement->fetch();
+        return $result['@@autocommit'];
+    }
+
+    public function changeAutoCommit()
+    {
+        $this->getContext()->setAutoCommitChanged(true);
+        $this->setAutoCommit(false);
+    }
+
+    public function setAutoCommit(bool $autoCommit)
+    {
+        if (($this->getContext()->inGlobalTransaction() || $this->getContext()->isGlobalLockRequire()) && $autoCommit && ! $this->getAutoCommit()) {
+            $this->doCommit();
+        }
+        $PDOStatement = $this->prepare('SET autocommit=?');
+        $autoCommit = $autoCommit ? 1 : 0;
+        $PDOStatement->execute([$autoCommit]);
     }
 
     /**
@@ -295,6 +325,17 @@ class PDOProxy extends \PDO implements Resource, ConnectionProxyInterface
         return new MySqlDriver();
     }
 
+    private function doCommit()
+    {
+        if ($this->getContext()->inGlobalTransaction()) {
+            $this->processGlobalTransactionCommit();
+        } elseif ($this->getContext()->isGlobalLockRequire()) {
+            $this->processLocalCommitWithGlobalLocks();
+        } else {
+            $this->commit();
+        }
+    }
+
     /**
      * @throws LockConflictException|\RuntimeException
      */
@@ -308,7 +349,7 @@ class PDOProxy extends \PDO implements Resource, ConnectionProxyInterface
 
             throw new LockConflictException($message);
         } else {
-            throw new \RuntimeException($exception);
+            throw new \RuntimeException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 

@@ -26,41 +26,8 @@ use Hyperf\Seata\Rm\DataSource\Sql\Struct\TableRecords;
 use Hyperf\Seata\Rm\DataSource\Undo\SQLUndoLog;
 use PHPSQLParser\PHPSQLCreator;
 
-class DeleteExecutor extends BaseTransactionalExecutor
+class DeleteExecutor extends AbstractDMLBaseExecutor
 {
-    public function execute(?array $params = null)
-    {
-        $beforeImage = $this->beforeImage();
-        $res = $this->PDO->prepare($this->parser->getOriginSql());
-        $result = $res->execute($params);
-        $afterImage = $this->afterImage();
-        $this->prepareUndoLog($beforeImage, $afterImage);
-        return $result;
-    }
-
-    public function beforeImage(): TableRecords
-    {
-        $tableMeta = $this->getTableMeta($this->parser->getDbType());
-        return $this->buildTableRecords($tableMeta);
-    }
-
-    public function prepareUndoLog(?TableRecords $beforeImages = null, ?TableRecords $afterImages = null)
-    {
-        if (count($beforeImages->getRows()) == 0) {
-            return;
-        }
-
-        $lockKey = $this->buildLockKey($beforeImages);
-        $this->PDO->appendLockKey($lockKey);
-
-        $undoLogItems = $this->buildUndoItem($beforeImages, $afterImages);
-        $this->PDO->appendUndoLog($undoLogItems);
-    }
-
-    public function afterImage(): ?TableRecords
-    {
-        return null;
-    }
 
     protected function buildTableRecords(TableMeta $tableMeta): TableRecords
     {
@@ -119,35 +86,6 @@ class DeleteExecutor extends BaseTransactionalExecutor
         return $tableRecords;
     }
 
-    protected function buildLockKey(TableRecords $tableRecords): string
-    {
-        if (empty($tableRecords->getRows()) || count($tableRecords->getRows()) == 0) {
-            return '';
-        }
 
-        $lockKey = $tableRecords->getTableName() . ':';
 
-        $fields = $tableRecords->pkFields();
-        $len = count($fields);
-        for ($i = 0; $i < $len; ++$i) {
-            $lockKey .= $fields[$i]->getName();
-            if ($i < $len - 1) {
-                $lockKey .= ',';
-            }
-        }
-        return $lockKey;
-    }
-
-    protected function buildUndoItem(?TableRecords $beforeImages = null, ?TableRecords $afterImages = null): SQLUndoLog
-    {
-        $sqlType = $this->parser->getSqlType();
-        $tableName = $this->parser->getTableName();
-
-        $undoLog = new SQLUndoLog();
-        $undoLog->setTableName($tableName)
-            ->setSqlType($sqlType);
-        ! empty($afterImages) && $undoLog->setAfterImage($afterImages);
-        ! empty($beforeImages) && $undoLog->setAfterImage($beforeImages);
-        return $undoLog;
-    }
 }

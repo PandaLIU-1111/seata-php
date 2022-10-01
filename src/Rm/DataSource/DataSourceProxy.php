@@ -24,6 +24,9 @@ use Hyperf\Seata\Core\Model\BranchType;
 use Hyperf\Seata\Core\Model\Resource;
 use Hyperf\Seata\Logger\LoggerFactory;
 use Hyperf\Seata\Logger\LoggerInterface;
+use Hyperf\Seata\Rm\DataSource\Sql\Struct\Cache\MysqlTableMetaCache;
+use Hyperf\Seata\Rm\DataSource\Sql\Struct\TableMetaCache;
+use Hyperf\Seata\Rm\DataSource\Sql\Struct\TableMetaCacheFactory;
 use Hyperf\Seata\Rm\DefaultResourceManager;
 
 class DataSourceProxy extends AbstractDataSourceProxy implements Resource
@@ -48,10 +51,11 @@ class DataSourceProxy extends AbstractDataSourceProxy implements Resource
     {
         $this->resourceGroupId = $resourceGroupId;
         $this->connection = $connection;
-        $this->defaultResourceManager->registerResource($this);
+        $this->defaultResourceManager->registerResource($connection);
 
         // @todo 补上 TableMetaChecker 逻辑
-
+        // 暂时只有MySql
+        TableMetaCacheFactory::getTableMetaCache('MySql')->refresh($connection->getPdo(), $resourceGroupId);
         // Set the default branch type to BranchType::AT in the RootContext
         RootContext::setDefaultBranchType($this->getBranchType());
     }

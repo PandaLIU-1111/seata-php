@@ -52,7 +52,20 @@ class MySqlParser implements ParserInterface
 
     public function getTableName(): string
     {
-        return $this->sqlStatement['FROM'][0]['table'] ?? '';
+        // Parser insert sql table name
+        if (isset($this->sqlStatement['INSERT'])) {
+            $insertExpr = $this->sqlStatement['INSERT'];
+            foreach ($insertExpr as $item) {
+                if ($item['expr_type'] == 'table') {
+                    $tableName = $item['table'];
+                    break;
+                }
+            }
+        } else {
+            $tableName = $this->sqlStatement['FROM'][0]['table'] ?? '';
+        }
+
+        return trim($tableName, '`');
     }
 
     public function getTableAlias(): ?string

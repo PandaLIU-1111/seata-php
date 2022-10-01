@@ -17,22 +17,23 @@ declare(strict_types=1);
  * limitations under the License.
  *
  */
-namespace Hyperf\Seata\Rm\DataSource\Sql\Struct;
+namespace Hyperf\Seata\Rm\DataSource\Exec\MySql;
 
-use Hyperf\Seata\Rm\DataSource\ConnectionProxyInterface;
-use Hyperf\Seata\Rm\PDOProxy;
+use Hyperf\Seata\Rm\DataSource\Exec\BaseInsertExecutor;
+use Hyperf\Seata\Rm\DataSource\Sql\Struct\TableRecords;
 
-interface TableMetaCache
+class InsertExecutor extends BaseInsertExecutor
 {
-    /**
-     * Gets table meta.
-     *
-     * @return TableMeta the table meta
-     */
-    public function getTableMeta(\PDO $PDO, string $tableName, string $resourceId): TableMeta;
 
-    /**
-     * Clear the table meta cache.
-     */
-    public function refresh(\PDO $PDO, string $resourceId);
+    public function getPkValues(): array
+    {
+        dump('===getPkValues===');
+        $pkValuesMap = [];
+        $pkColumnNameList = $this->getTableMeta($this->parser->getDbType())->getPrimaryKeyOnlyName();
+    }
+
+    public function getPkValuesByColumn(): array
+    {
+        // TODO: Implement getPkValuesByColumn() method.
+    }
 }

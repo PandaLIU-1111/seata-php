@@ -52,7 +52,7 @@ abstract class AbstractTableMetaCache implements TableMetaCache
         $this->logger = $container->get(StdoutLogger::class);
     }
 
-    public function getTableMeta(PDOProxy $PDO, string $tableName, string $resourceId): TableMeta
+    public function getTableMeta(\PDO $PDO, string $tableName, string $resourceId): TableMeta
     {
         if (empty($tableName)) {
             throw new IllegalArgumentException('TableMeta cannot be fetched without tableName');
@@ -68,7 +68,7 @@ abstract class AbstractTableMetaCache implements TableMetaCache
         return $result;
     }
 
-    public function refresh(PDOProxy $PDO, string $resourceId)
+    public function refresh(\PDO $PDO, string $resourceId)
     {
         foreach ($this->TABLE_META_CACHE as $key => $value) {
             /** @var TableMeta $TableMeta */

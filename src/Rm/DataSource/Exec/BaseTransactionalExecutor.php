@@ -22,6 +22,7 @@ namespace Hyperf\Seata\Rm\DataSource\Exec;
 use Hyperf\Seata\Core\Context\RootContext;
 use Hyperf\Seata\Rm\DataSource\Sql\Struct\TableMeta;
 use Hyperf\Seata\Rm\DataSource\Sql\Struct\TableMetaCacheFactory;
+use Hyperf\Seata\Rm\DataSource\Sql\Struct\TableRecords;
 use Hyperf\Seata\Rm\PDOProxy;
 use Hyperf\Seata\SqlParser\Parser\ParserInterface;
 
@@ -46,34 +47,34 @@ abstract class BaseTransactionalExecutor implements Executor
         $this->bindColumnContext = $bindColumnContext;
         $this->bindParamContext = $bindParamContext;
         $this->bindValueContext = $bindValueContext;
+        $tableMetaCache = TableMetaCacheFactory::getTableMetaCache($this->parser->getDbType());
+
+
+        $this->tableMeta = $tableMetaCache->getTableMeta($PDO, $this->parser->getTableName(), $PDO->getResourceId());
     }
 
-    protected function getTableMeta($dbType): TableMeta
+    public function execute(?array $params = null)
     {
+        $xid = RootContext::getXID();
+        if (! empty($xid)) {
+            $this->PDO->bind($xid);
+        }
+        $this->PDO->setGlobalLockRequire(RootContext::requireGlobalLock());
+        return $this->doExecute($params);
+    }
+
+
+    protected function getTableMeta(?string $dbType = null): TableMeta
+    {
+        var_dump('----getTableMeta-1');
         if (! empty($this->tableMeta)) {
             return $this->tableMeta;
         }
+        var_dump('----getTableMeta-2');
         $tableMetaCache = TableMetaCacheFactory::getTableMetaCache($dbType);
+        var_dump('----getTableMeta-3');
         return $tableMetaCache->getTableMeta($this->PDO, $this->parser->getTableName(), $this->parser->getResourceId());
     }
 
-//    private StatementProxy $statementProxy;
-//
-//    public function execute(...$args)
-//    {
-//        $connectionProxy = $this->statementProxy->getConnectionProxy();
-//        if (RootContext::inGlobalTransaction()) {
-//            $xid = RootContext::getXID();
-//            $connectionProxy->bind($xid);
-//        }
-//
-//        if (RootContext::requireGlobalLock()) {
-//            $connectionProxy->setGlobalLockRequire(true);
-//        } else {
-//            $connectionProxy->setGlobalLockRequire(false);
-//        }
-//        return $this->doExecute($args);
-//    }
-//
-//    protected abstract function doExecute(...$args);
+    abstract protected function doExecute(?array $params = null);
 }

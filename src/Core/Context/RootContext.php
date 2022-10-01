@@ -44,7 +44,7 @@ class RootContext extends Context
 
     public const VALUE_GLOBAL_LOCK_FLAG = true;
 
-    protected static int $defaultBranchType;
+    protected static ?int $defaultBranchType = null;
 
     protected static ?LoggerInterface $logger = null;
 

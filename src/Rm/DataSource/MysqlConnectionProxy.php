@@ -24,6 +24,7 @@ use Hyperf\Database\Connection;
 use Hyperf\Database\DBAL\MySqlDriver;
 use Hyperf\Database\Query\Grammars\MySqlGrammar as QueryGrammar;
 use Hyperf\Database\Query\Processors\MySqlProcessor;
+use Hyperf\Database\Query\Processors\Processor;
 use Hyperf\Database\Schema\Grammars\MySqlGrammar as SchemaGrammar;
 use Hyperf\Database\Schema\MySqlBuilder;
 use Hyperf\Seata\Core\Model\BranchStatus;
@@ -40,6 +41,7 @@ use Hyperf\Seata\Rm\DataSource\Undo\SQLUndoLog;
 use Hyperf\Seata\Rm\DataSource\Undo\UndoLogManager;
 use Hyperf\Seata\Rm\DataSource\Undo\UndoLogManagerFactory;
 use Hyperf\Seata\Rm\DefaultResourceManager;
+use Hyperf\Seata\Rm\PDOProxy;
 use Hyperf\Utils\ApplicationContext;
 use JetBrains\PhpStorm\Pure;
 
@@ -79,6 +81,7 @@ class MysqlConnectionProxy extends Connection implements Resource, ConnectionPro
         $this->reportSuccessEnable = $config->get('seata.client.rm.report_success_enable', false);
         $this->reportRetryCount = $config->get('seata.client.rm.report_retry_count', 5);
     }
+
 
     public function getResourceGroupId(): string
     {
@@ -262,7 +265,7 @@ class MysqlConnectionProxy extends Connection implements Resource, ConnectionPro
      *
      * @return \Hyperf\Database\Query\Grammars\MySqlGrammar
      */
-    protected function getDefaultQueryGrammar()
+    protected function getDefaultQueryGrammar(): \Hyperf\Database\Query\Grammars\Grammar
     {
         return $this->withTablePrefix(new QueryGrammar());
     }
@@ -272,7 +275,7 @@ class MysqlConnectionProxy extends Connection implements Resource, ConnectionPro
      *
      * @return \Hyperf\Database\Schema\Grammars\MySqlGrammar
      */
-    protected function getDefaultSchemaGrammar()
+    protected function getDefaultSchemaGrammar(): \Hyperf\Database\Schema\Grammars\Grammar
     {
         return $this->withTablePrefix(new SchemaGrammar());
     }
@@ -282,7 +285,7 @@ class MysqlConnectionProxy extends Connection implements Resource, ConnectionPro
      *
      * @return \Hyperf\Database\Query\Processors\MySqlProcessor
      */
-    protected function getDefaultPostProcessor()
+    protected function getDefaultPostProcessor(): Processor
     {
         return new MySqlProcessor();
     }
@@ -310,7 +313,7 @@ class MysqlConnectionProxy extends Connection implements Resource, ConnectionPro
 
             throw new LockConflictException($message);
         } else {
-            throw new \RuntimeException($exception);
+            throw new \RuntimeException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 

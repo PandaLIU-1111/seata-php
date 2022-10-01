@@ -33,7 +33,7 @@ class MysqlTableMetaCache extends AbstractTableMetaCache
         $sql = 'SELECT `TABLE_CATALOG`, `TABLE_SCHEMA`, `TABLE_NAME`, `COLUMN_NAME`, `DATA_TYPE`, `CHARACTER_MAXIMUM_LENGTH`, ' .
             '`NUMERIC_PRECISION`, `NUMERIC_SCALE`, `IS_NULLABLE`, `COLUMN_COMMENT`, `COLUMN_DEFAULT`, `CHARACTER_OCTET_LENGTH`, ' .
             '`ORDINAL_POSITION`, `COLUMN_KEY`, `EXTRA`  FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_NAME` = :tableName';
-        $res = $pdo->prepare($sql);
+        $res = $pdo->parentPrepare($sql);
         $res->bindParam(':tableName', $tableName, PDO::PARAM_STR);
         $res->execute();
         $columns = $res->fetchAll();
@@ -45,15 +45,15 @@ class MysqlTableMetaCache extends AbstractTableMetaCache
             $columnMeta->setColumnName($column['COLUMN_NAME']);
             $columnMeta->setDataTypeName($column['DATA_TYPE']);
             $columnMeta->setDataType(SQLType::getSqlType($column['DATA_TYPE']));
-            $columnMeta->setColumnSize($column['CHARACTER_MAXIMUM_LENGTH']);
-            $columnMeta->setDecimalDigits($column['NUMERIC_PRECISION']);
+            $columnMeta->setColumnSize((int) $column['CHARACTER_MAXIMUM_LENGTH']);
+            $columnMeta->setDecimalDigits((int) $column['NUMERIC_PRECISION']);
             $columnMeta->setIsNullAble($column['IS_NULLABLE']);
-            $columnMeta->setNumPrecRadix($column['NUMERIC_SCALE']);
+            $columnMeta->setNumPrecRadix((int) $column['NUMERIC_SCALE']);
             $columnMeta->setRemarks($column['COLUMN_COMMENT']);
-            $columnMeta->setColumnDef($column['COLUMN_DEFAULT']);
+            $columnMeta->setColumnDef((string) $column['COLUMN_DEFAULT']);
             $columnMeta->setSqlDataType(0);
             $columnMeta->setSqlDatetimeSub(0);
-            $columnMeta->setCharOctetLength($column['CHARACTER_OCTET_LENGTH']);
+            $columnMeta->setCharOctetLength((int) $column['CHARACTER_OCTET_LENGTH']);
             $columnMeta->setOrdinalPosition($column['ORDINAL_POSITION']);
             $columnMeta->setIsAutoincrement($column['EXTRA']);
             $tableMeta->addAllColumns($columnMeta);
@@ -65,7 +65,7 @@ class MysqlTableMetaCache extends AbstractTableMetaCache
     {
         $sql = 'SELECT `INDEX_NAME`, `COLUMN_NAME`, `NON_UNIQUE`, `INDEX_TYPE`, `SEQ_IN_INDEX`, `COLLATION`, `CARDINALITY` ' .
             'FROM `INFORMATION_SCHEMA`.`STATISTICS` WHERE `TABLE_NAME` = :tableName';
-        $res = $pdo->prepare($sql);
+        $res = $pdo->parentPrepare($sql);
         $res->bindParam(':tableName', $tableName, PDO::PARAM_STR);
         $res->execute();
         $indexs = $res->fetchAll();

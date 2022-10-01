@@ -81,7 +81,7 @@ class DataSourceManager extends AbstractResourceManager implements Resource
 
     public function registerResource(Resource $resource): void
     {
-        if (! $resource instanceof PDOProxy) {
+        if (! $resource instanceof ConnectionProxyInterface) {
             throw new \InvalidArgumentException('Invalid data source passing');
         }
         $this->dataSourceCache[$resource->getResourceId()] = $resource;

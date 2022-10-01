@@ -24,92 +24,92 @@ class ColumnMeta
     /**
      * @var string
      */
-    private $tableCat = '';
+    private string $tableCat = '';
 
     /**
      * @var string
      */
-    private $tableSchemaName = '';
+    private string $tableSchemaName = '';
 
     /**
      * @var string
      */
-    private $tableName = '';
+    private string $tableName = '';
 
     /**
      * @var string
      */
-    private $columnName = '';
+    private string $columnName = '';
 
     /**
      * @var int
      */
-    private $dataType;
+    private int $dataType;
 
     /**
      * @var string
      */
-    private $dataTypeName = '';
+    private string $dataTypeName = '';
 
     /**
      * @var int
      */
-    private $columnSize;
+    private int $columnSize;
 
     /**
      * @var int
      */
-    private $decimalDigits;
+    private int $decimalDigits;
 
     /**
      * @var int
      */
-    private $numPrecRadix;
+    private int $numPrecRadix;
 
     /**
      * @var int
      */
-    private $nullAble;
+    private int $nullAble;
 
     /**
      * @var string
      */
-    private $remarks = '';
+    private string $remarks = '';
 
     /**
      * @var string
      */
-    private $columnDef = '';
+    private string $columnDef = '';
 
     /**
      * @var int
      */
-    private $sqlDataType;
+    private int $sqlDataType;
 
     /**
      * @var int
      */
-    private $sqlDatetimeSub;
+    private int $sqlDatetimeSub;
 
     /**
      * @var int
      */
-    private $charOctetLength;
+    private int $charOctetLength;
 
     /**
      * @var int
      */
-    private $ordinalPosition;
+    private int $ordinalPosition;
 
     /**
      * @var string
      */
-    private $isNullAble = '';
+    private string $isNullAble = '';
 
     /**
      * @var string
      */
-    private $isAutoincrement = '';
+    private string $isAutoincrement = '';
 
     public function getTableCat(): string
     {

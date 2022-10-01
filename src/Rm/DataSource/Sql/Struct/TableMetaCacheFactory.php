@@ -33,8 +33,8 @@ class TableMetaCacheFactory
         }
         switch ($dbType) {
             case 'MySql':
-                $TABLE_META_CACHE_MAP[$dbType] = new MysqlTableMetaCache();
-                return $TABLE_META_CACHE_MAP[$dbType];
+                self::$TABLE_META_CACHE_MAP[$dbType] = new MysqlTableMetaCache();
+                return self::$TABLE_META_CACHE_MAP[$dbType];
             default:
                 // TODO 优化报错
                 throw new UnsupportedFeatureException('unsupported');

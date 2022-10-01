@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Hyperf\Seata\Rm;
 
 use Hyperf\Seata\Rm\DataSource\Exec\DeleteExecutor;
+use Hyperf\Seata\Rm\DataSource\Exec\MySql\InsertExecutor;
 use Hyperf\Seata\SqlParser\Parser\ParserInterface;
 use PDO;
 use PDOStatement;
@@ -65,33 +66,41 @@ class PDOStatementProxy extends \PDOStatement
     public function bindParam(int|string $param, mixed &$var, int $type = PDO::PARAM_INT, int $maxLength = null, mixed $driverOptions = null)
     {
         $this->bindParamContext[$param] = [$var, $type, $maxLength, $driverOptions];
-        return $this->__object->bindColumn($param, $param, $type, $maxLength, $driverOptions);
+        $args = func_get_args();
+        var_dump('=====', $args);
+        return $this->__object->bindColumn(...$args);
     }
 
     public function bindColumn(int|string $column, mixed &$var, int $type = PDO::PARAM_INT, int $maxLength = null, mixed $driverOptions = null)
     {
         $this->bindColumnContext[$column] = [$var, $type, $maxLength, $driverOptions];
-        return $this->__object->bindColumn($column, $param, $type, $maxLength, $driverOptions);
+        $args = func_get_args();
+        return $this->__object->bindColumn(...$args);
     }
 
     public function bindValue(int|string $param, mixed $value, int $type = PDO::PARAM_INT)
     {
         $this->bindValueContext[$param] = [$value, $type];
-        return $this->__object->bindValue($param, $value, $type);
+        $args = func_get_args();
+        return $this->__object->bindValue(...$args);
     }
 
     public function execute(?array $params = null)
     {
-
         if ($this->sqlParser->isDelete()) {
             $deleteExecutor = new DeleteExecutor($this->sqlParser, $this->PDOProxy, $this->bindParamContext, $this->bindColumnContext, $this->bindValueContext);
             $deleteExecutor->execute($params);
         }
 
         if ($this->sqlParser->isInsert()) {
+            $insertExecutor = new InsertExecutor($this->sqlParser, $this->PDOProxy, $this->bindParamContext, $this->bindColumnContext, $this->bindValueContext);
+            var_dump('====insert sql');
+            $insertExecutor->execute();
+            var_dump('====insert sql finished');
         }
 
-        if ($this->sqlParser->isInsert()) {
+        if ($this->sqlParser->isUpdate()) {
+            var_dump('====update sql');
         }
         return $this->__object->execute($params);
     }

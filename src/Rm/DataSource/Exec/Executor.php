@@ -29,5 +29,5 @@ interface Executor
 
     public function prepareUndoLog(?TableRecords $beforeImages = null, ?TableRecords $afterImages = null);
 
-    public function afterImage(): ?TableRecords;
+    public function afterImage(TableRecords $tableRecords): ?TableRecords;
 }

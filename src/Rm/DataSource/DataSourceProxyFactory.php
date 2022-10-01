@@ -19,7 +19,9 @@ declare(strict_types=1);
  */
 namespace Hyperf\Seata\Rm\DataSource;
 
+use Hyperf\Contract\ConfigInterface;
 use Hyperf\Database\Connection;
+use Hyperf\Database\Connectors\ConnectionFactory;
 use Hyperf\DbConnection\Pool\PoolFactory;
 use Hyperf\Seata\Logger\LoggerFactory;
 use Hyperf\Seata\Rm\DefaultResourceManager;
@@ -27,17 +29,19 @@ use Psr\Container\ContainerInterface;
 
 class DataSourceProxyFactory
 {
+
     public function __invoke(ContainerInterface $container)
     {
-        return new DataSourceProxy($container->get(LoggerFactory::class), $container->get(DefaultResourceManager::class));
-        // Connection::resolverFor('mysql', function ($connection, string $database, string $prefix, array $config) {
-        //    return new MysqlConnectionProxy($connection, $database, $prefix, $config);
-        // });
+        Connection::resolverFor('mysql', function ($connection, string $database, string $prefix, array $config) {
+            return new MysqlConnectionProxy($connection, $database, $prefix, $config);
+        });
 
-//        $mysqlConnectinProxy = $container->get(PoolFactory::class)->getPool('default')->get();
-
+//        $mysqlConnectionProxy = $container->get(PoolFactory::class)->getPool('default')->get();
+        $config = $container->get(ConfigInterface::class)->get('databases.default');
+        $connection = $container->get(ConnectionFactory::class)->make($config, 'default');
+        $instance = new DataSourceProxy($container->get(LoggerFactory::class), $container->get(DefaultResourceManager::class));
+        $instance->init($connection, $instance->resourceGroupId);
+        return $instance;
 //        echo '<pre>';var_dump($mysqlConnectinProxy);echo '</pre>';exit();
-
-//        $instance->init($mysqlConnectinProxy, $instance->resourceGroupId);
     }
 }
